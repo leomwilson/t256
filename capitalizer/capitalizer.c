@@ -3,7 +3,11 @@
 #include <stdlib.h>
 
 #define COMP_PTR(state, tape_char) (state * 256 + tape_char * 2)
-
+/**
+  * Outputs capitalizer.t256, a 256kb file with instructions
+  * for the T-256 machine to capitalize the entire tape
+  * until it hits a null character, then accept and output
+  */
 int main (void) {
     char* mem = malloc(256 * 1024);
     memset(mem, 0, 256 * 1024);
