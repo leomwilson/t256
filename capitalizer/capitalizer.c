@@ -34,6 +34,7 @@ int main (void) {
     FILE *file = fopen("capitalizer.t256", "w");
     fwrite(mem, 256 * 1024, 1, file);
     fclose(file);
+    free(mem);
 
     return 0;
 }
