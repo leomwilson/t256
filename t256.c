@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 const char FLAG_DEBUG = 0b10000000;
 const char ASCII = 0b01111111;
@@ -49,8 +51,12 @@ int main (int argc, char** argv) {
         state = mem[state * 256 + tape_char * 2 + 1];
 
         if (state == 0) {
+            fprintf(stderr, "ACCEPT. Tape:\n");
+            printf("%s", TAPE_INITIAL);
             return 0;
         } else if (state == 1) {
+            fprintf(stderr, "REJECT. Tape:\n");
+            printf("%s", TAPE_INITIAL);
             return 1;
         }
     }
