@@ -11,17 +11,21 @@ int main (void) {
     mem[COMP_PTR(2, 0)] = 0;
     
     for (int i = 1; i < 128; i++) {
-        fprintf(stderr, "i = %d\n", i);
-        if (i >= 61 && i <= 122) { // lowercase latin letter, to upper
-            mem[COMP_PTR(2, i)] = 0b1000000 | i ^ 0b00100000;
+        if (i >= 97 && i <= 122) { // lowercase latin letter, to upper
+            mem[COMP_PTR(2, i)] = 0b10000000 | i ^ 0b00100000;
         } else { // preserve and move on
-            mem[COMP_PTR(2, i)] = 0b1000000 | i;
+            mem[COMP_PTR(2, i)] = 0b10000000 | i;
         }
         mem[COMP_PTR(2, i) + 1] = 2;
     }
 
     char* tape = mem + (256 * 256);
-    strcpy(tape, "This is a test of the capitalization thing.\nIt SHOULD work \"without\" issue.");
+    strcpy(tape, "This is a test of the capitalization thing.\nIt SHOULD work \"without\" issue.\n");
+
+    for (int i = 0; i < 128; i++) {
+        printf("State 2, tape char %u: %u / %u\n", i, mem[COMP_PTR(2, i)] & 0xff, mem[COMP_PTR(2, i) + 1] & 0xff);
+    }
+    printf("\nTape:\n%s\n\n", tape);
 
     FILE *file = fopen("capitalizer.t256", "w");
     fwrite(mem, 256 * 1024, 1, file);
