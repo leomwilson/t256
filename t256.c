@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 const char FLAG_DEBUG = 0b10000000;
 const char ASCII = 0b01111111;
@@ -13,7 +14,7 @@ void print_tape(char* ptr) {
 }
 
 int main (int argc, char** argv) {
-    char* fname = argv[argc - 1];;
+    char* fname = argv[argc - 1];
     char flags = 0;
 
     // flags
@@ -30,20 +31,25 @@ int main (int argc, char** argv) {
       * Tape (192kb of single chars)
       */
     char* mem = malloc(256 * 1024);
+    memset(mem, 0, 256 * 1024);
     char* tape_initial = mem + (256 * 256);
     const char* TAPE_MAX = mem + (256 * 1024);
 
-    if (strcmp(fname, "-") == 0) { // stdin
-        // read from stdin
-        printf("not implemented, must read from a file");
-        return 2;
-    } else {
-        FILE* file = fopen(fname, "r");
-        fread(mem, 256 * 1024, 1, file);
-        fclose(file);
+    // read in instruction portion
+    FILE* file = fopen(fname, "r");
+    fread(mem, 256 * 256, 1, file);
+    fclose(file);
+
+    // read in tape
+    // TODO: add more tape options
+    char ch;
+    char* tape_write_ptr = tape_initial;
+    while (read(STDIN_FILENO, &ch, 1) > 0 && tape_write_ptr < TAPE_MAX) {
+        *tape_write_ptr = ch;
+        tape_write_ptr++;
     }
 
-    if (flags && FLAG_DEBUG) {
+    if (flags & FLAG_DEBUG) {
         fprintf(stderr, "Initial tape:\n");
         print_tape(tape_initial);
     }

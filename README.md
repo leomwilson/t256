@@ -9,7 +9,14 @@ To quickly test the machine with the included sample instructions, run:
 cd capitalizer
 gcc capitalizer.c -o capitalizer && ./capitalizer
 cd ..
-gcc t256.c -o t256 && ./t256 capitalizer/capitalizer.t256
+gcc t256.c -o t256 && echo "This is a test." | ./t256 capitalizer/capitalizer.t256
+```
+
+Expected output:
+
+```txt
+ACCEPT. Tape:
+THIS IS A TEST.
 ```
 
 ## Memory Format
