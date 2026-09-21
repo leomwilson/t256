@@ -70,12 +70,12 @@ int main (int argc, char** argv) {
 
         if (state == 0) {
             fprintf(stderr, "ACCEPT. Tape:\n");
-            print_tape(tape_initial);
+            print_tape((next_tape ^ ASCII) ? ptr : tape_initial);
             free(mem);
             return 0;
         } else if (state == 1) {
             fprintf(stderr, "REJECT. Tape:\n");
-            print_tape(tape_initial);
+            print_tape((next_tape ^ ASCII) ? ptr : tape_initial);
             free(mem);
             return 1;
         }

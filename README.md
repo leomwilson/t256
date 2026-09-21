@@ -33,6 +33,8 @@ This runs like a regular Turing machine, with a few exceptions:
 
 - Each character on the tape must be 7 bits; since the tape stores 8-bit bytes, the highest-order bit will be ignored. This is not an issue if using standard ASCII characters.
 
+- Transition to state `0` to accept or state `1` to reject, in either case terminating. If the program transitions to a terminal state while moving the tape head left, the machine outputs the tape as a null-terminated string starting with the beginning of the tape; if the tape head is moved right at this transition, the machine outputs the tape starting at the new location of the head.
+
 ## Compilation
 
 Compile the files using any C compiler. For example,
