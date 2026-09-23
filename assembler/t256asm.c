@@ -274,8 +274,10 @@ int main(int argc, char** argv) {
         mem[COMP_PTR(curLine.fromState, curLine.tapeChar) + 1] = curLine.toState;
     };
 
-    // TODO: write out to file
-
+    // write out to file
+    FILE *file = fopen(outfname, "w");
+    fwrite(mem, 256 * 256, 1, file);
+    fclose(file);
     free(mem);
 
     return 0;
