@@ -75,7 +75,6 @@ int main (int argc, char** argv) {
         }
         state = next_state;
 
-
         if (state == 1) {
             fprintf(stderr, "ACCEPT. Tape:\n");
             print_tape((next_tape & RIGHT) ? tape_initial : ptr);

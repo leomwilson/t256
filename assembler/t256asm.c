@@ -285,6 +285,13 @@ int main(int argc, char** argv) {
         prevLine = curLine;
     }
 
+    struct lexedSymbol* lexedHead = initialSymbol;
+    while (lexedHead != NULL) {
+        struct lexedSymbol* next = lexedHead->next;
+        free(lexedHead);
+        lexedHead = next;
+    }
+
     struct parsedLine* curLine = initialLine;
 
     char* mem = malloc(256 * 256);
@@ -298,6 +305,13 @@ int main(int argc, char** argv) {
         mem[COMP_PTR(curLine->fromState, curLine->tapeChar) + 1] = curLine->toState;
         //printf("* %d = %d\n", COMP_PTR(curLine->fromState, curLine->tapeChar) + 1, curLine->toState);
     };
+
+    struct parsedLine* parsedHead = initialLine;
+    while (parsedHead != NULL) {
+        struct parsedLine* next = parsedHead->next;
+        free(parsedHead);
+        parsedHead = next;
+    }
 
     // write out to file
     FILE *file = fopen(outfname, "w");
