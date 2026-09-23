@@ -57,4 +57,5 @@ dkms.conf
 # binaries:
 t256
 capitalizer/capitalizer
+assembler/t256asm
 *.t256
