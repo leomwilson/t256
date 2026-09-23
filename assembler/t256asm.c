@@ -63,10 +63,10 @@ int main(int argc, char** argv) {
     char storedChar;
     int line = 1; // lines are 1-indexed
     char state = 0; // 0 = ready, 1 = number, 2 = arrow, 3 = comment
-    struct lexedSymbol initialSymbol;
-    initialSymbol.type = 5;
-    initialSymbol.line = 0;
-    struct lexedSymbol prevSymbol = initialSymbol;
+    struct lexedSymbol* initialSymbol = (struct lexedSymbol*) malloc(sizeof(struct lexedSymbol));
+    initialSymbol->type = 5;
+    initialSymbol->line = 0;
+    struct lexedSymbol* prevSymbol = initialSymbol;
     while (c != EOF) {
         c = (char) fgetc(infile);
         if (c == EOF) { break; } // I recognize that this is a hack
@@ -94,11 +94,11 @@ int main(int argc, char** argv) {
             continue;
         }
         if (state == 1 && isHexDigit(c)) {
-            struct lexedSymbol curSymbol;
-            curSymbol.type = 0;
-            curSymbol.line = line;
-            curSymbol.data = parseTwoDigitHex(storedChar, c);
-            prevSymbol.next = &curSymbol;
+            struct lexedSymbol* curSymbol = (struct lexedSymbol*) malloc(sizeof(struct lexedSymbol));
+            curSymbol->type = 0;
+            curSymbol->line = line;
+            curSymbol->data = parseTwoDigitHex(storedChar, c);
+            prevSymbol->next = curSymbol;
             prevSymbol = curSymbol;
             storedChar = 0;
             state = 0;
@@ -107,10 +107,10 @@ int main(int argc, char** argv) {
 
         // semicolons and commas
         if (state == 0 && (c == ';' || c == ',')) {
-            struct lexedSymbol curSymbol;
-            curSymbol.type = (c == ';') ? 2 : 1;
-            curSymbol.line = line;
-            prevSymbol.next = &curSymbol;
+            struct lexedSymbol* curSymbol = (struct lexedSymbol*) malloc(sizeof(struct lexedSymbol));
+            curSymbol->type = (c == ';') ? 2 : 1;
+            curSymbol->line = line;
+            prevSymbol->next = curSymbol;
             prevSymbol = curSymbol;
             continue;
         }
@@ -121,10 +121,10 @@ int main(int argc, char** argv) {
             continue;
         }
         if (state == 2 && c == '>') {
-            struct lexedSymbol curSymbol;
-            curSymbol.type = 3;
-            curSymbol.line = line;
-            prevSymbol.next = &curSymbol;
+            struct lexedSymbol* curSymbol = (struct lexedSymbol*) malloc(sizeof(struct lexedSymbol));
+            curSymbol->type = 3;
+            curSymbol->line = line;
+            prevSymbol->next = curSymbol;
             prevSymbol = curSymbol;
             state = 0;
             continue;
@@ -132,11 +132,11 @@ int main(int argc, char** argv) {
 
         // directions
         if (state == 0 && (c == 'R' || c == 'r' || c == 'L' || c == 'l')) {
-            struct lexedSymbol curSymbol;
-            curSymbol.type = 4;
-            curSymbol.line = line;
-            curSymbol.data = (c == 'R' || c == 'r') ? 1 : 0;
-            prevSymbol.next = &curSymbol;
+            struct lexedSymbol* curSymbol = (struct lexedSymbol*) malloc(sizeof(struct lexedSymbol));
+            curSymbol->type = 4;
+            curSymbol->line = line;
+            curSymbol->data = (c == 'R' || c == 'r') ? 1 : 0;
+            prevSymbol->next = curSymbol;
             prevSymbol = curSymbol;
             continue;
         }
@@ -155,145 +155,145 @@ int main(int argc, char** argv) {
 
     fclose(infile);
 
-    struct parsedLine initialLine;
-    initialLine.fromState = 0;
-    initialLine.tapeChar = 0;
-    initialLine.toState = 0;
-    initialLine.newChar = 0;
-    initialLine.movement = 0;
+    struct parsedLine* initialLine = (struct parsedLine*) malloc(sizeof(struct parsedLine));
+    initialLine->fromState = 0;
+    initialLine->tapeChar = 0;
+    initialLine->toState = 0;
+    initialLine->newChar = 0;
+    initialLine->movement = 0;
 
-    struct parsedLine prevLine = initialLine;
-    struct lexedSymbol curSymbol = initialSymbol;
+    struct parsedLine* prevLine = initialLine;
+    struct lexedSymbol* curSymbol = initialSymbol;
 
-    while (curSymbol.next != NULL) {
-        curSymbol = *curSymbol.next; // NOTE: skips the initial blank symbol
-        struct parsedLine curLine;
+    while (curSymbol->next != NULL) {
+        curSymbol = curSymbol->next; // NOTE: skips the initial blank symbol
+        struct parsedLine* curLine = (struct parsedLine*) malloc(sizeof(struct parsedLine));
 
         // from state
-        if (curSymbol.type != 0) {
-            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol.line);
+        if (curSymbol->type != 0) {
+            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol->line);
+            return 2;
+        } 
+        curLine->fromState = curSymbol->data;
+        curLine->line = curSymbol->line; 
+        if (curSymbol->next == NULL) {
+            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol->line);
             return 2;
         }
-        curLine.fromState = curSymbol.data;
-        curLine.line = curSymbol.line;
-        if (curSymbol.next == NULL) {
-            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol.line);
-            return 2;
-        }
-        curSymbol = *curSymbol.next;
-        
+        curSymbol = curSymbol->next;
+
         // comma
-        if (curSymbol.type != 1) {
-            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol.line);
+        if (curSymbol->type != 1) {
+            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol->line);
             return 2;
         }
-        if (curSymbol.next == NULL) {
-            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol.line);
+        if (curSymbol->next == NULL) {
+            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol->line);
             return 2;
         }
-        curSymbol = *curSymbol.next;
+        curSymbol = curSymbol->next;
 
         // tape char
-        if (curSymbol.type != 0) {
-            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol.line);
+        if (curSymbol->type != 0) {
+            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol->line);
             return 2;
         }
-        curLine.tapeChar = curSymbol.data;
-        if (curSymbol.next == NULL) {
-            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol.line);
+        curLine->tapeChar = curSymbol->data;
+        if (curSymbol->next == NULL) {
+            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol->line);
             return 2;
         }
-        curSymbol = *curSymbol.next;
+        curSymbol = curSymbol->next;
 
         // arrow
-        if (curSymbol.type != 3) {
-            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol.line);
+        if (curSymbol->type != 3) {
+            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol->line);
             return 2;
         }
-        if (curSymbol.next == NULL) {
-            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol.line);
+        if (curSymbol->next == NULL) {
+            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol->line);
             return 2;
         }
-        curSymbol = *curSymbol.next;
+        curSymbol = curSymbol->next;
 
         // to state
-        if (curSymbol.type != 0) {
-            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol.line);
+        if (curSymbol->type != 0) {
+            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol->line);
             return 2;
         }
-        curLine.toState = curSymbol.data;
-        if (curSymbol.next == NULL) {
-            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol.line);
+        curLine->toState = curSymbol->data;
+        if (curSymbol->next == NULL) {
+            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol->line);
             return 2;
         }
-        curSymbol = *curSymbol.next;
+        curSymbol = curSymbol->next;
 
         // comma
-        if (curSymbol.type != 1) {
-            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol.line);
+        if (curSymbol->type != 1) {
+            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol->line);
             return 2;
         }
-        if (curSymbol.next == NULL) {
-            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol.line);
+        if (curSymbol->next == NULL) {
+            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol->line);
             return 2;
         }
-        curSymbol = *curSymbol.next;
+        curSymbol = curSymbol->next;
 
         // new char
-        if (curSymbol.type != 0) {
-            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol.line);
+        if (curSymbol->type != 0) {
+            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol->line);
             return 2;
         }
-        curLine.newChar = curSymbol.data;
-        if (curSymbol.next == NULL) {
-            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol.line);
+        curLine->newChar = curSymbol->data;
+        if (curSymbol->next == NULL) {
+            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol->line);
             return 2;
         }
-        curSymbol = *curSymbol.next;
+        curSymbol = curSymbol->next;
 
         // comma
-        if (curSymbol.type != 1) {
-            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol.line);
+        if (curSymbol->type != 1) {
+            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol->line);
             return 2;
         }
-        if (curSymbol.next == NULL) {
-            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol.line);
+        if (curSymbol->next == NULL) {
+            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol->line);
             return 2;
         }
-        curSymbol = *curSymbol.next;
+        curSymbol = curSymbol->next;
 
         // movement
-        if (curSymbol.type != 4) {
-            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol.line);
+        if (curSymbol->type != 4) {
+            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol->line);
             return 2;
         }
-        curLine.movement = curSymbol.data;
-        if (curSymbol.next == NULL) {
-            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol.line);
+        curLine->movement = curSymbol->data;
+        if (curSymbol->next == NULL) {
+            fprintf(stderr, "Parser error on line %d: Incomplete statement.\n", curSymbol->line);
             return 2;
         }
-        curSymbol = *curSymbol.next;
+        curSymbol = curSymbol->next;
 
         // semicolon
-        if (curSymbol.type != 2) {
-            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol.line);
+        if (curSymbol->type != 2) {
+            fprintf(stderr, "Parser error on line %d: Malformed statement.\n", curSymbol->line);
             return 2;
         }
 
         // add to the linked list
-        prevLine.next = &curLine;
+        prevLine->next = curLine;
         prevLine = curLine;
     }
 
-    struct parsedLine curLine = initialLine;
+    struct parsedLine* curLine = initialLine;
 
     char* mem = malloc(256 * 256);
     memset(mem, 0, 256 * 256);
 
-    while (curLine.next != NULL) {
-        curLine = *curLine.next; // NOTE: skips the initial empty line 
-        mem[COMP_PTR(curLine.fromState, curLine.tapeChar)] = (curLine.newChar & ASCII) | (curLine.movement < 7);
-        mem[COMP_PTR(curLine.fromState, curLine.tapeChar) + 1] = curLine.toState;
+    while (curLine->next != NULL) {
+        curLine = curLine->next; // NOTE: skips the initial empty line 
+        mem[COMP_PTR(curLine->fromState, curLine->tapeChar)] = (curLine->newChar & ASCII) | (curLine->movement << 7);
+        mem[COMP_PTR(curLine->fromState, curLine->tapeChar) + 1] = curLine->toState;
     };
 
     // write out to file
