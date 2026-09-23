@@ -5,6 +5,7 @@
 
 const char FLAG_DEBUG = 0b10000000;
 const char ASCII = 0b01111111;
+const char RIGHT = 0b10000000;
 
 void print_tape(char* ptr) {
     while (*ptr) {
@@ -60,22 +61,31 @@ int main (int argc, char** argv) {
     while (1) {
         char tape_char = *ptr & ASCII;
         char next_tape = mem[state * 256 + tape_char * 2];
+        char next_state = mem[state * 256 + tape_char * 2 + 1];
+
+        if (flags & FLAG_DEBUG) {
+            fprintf(stderr, "* 0x%x (0x%x) -> 0x%x (0x%x) %c\n", state, tape_char, next_state, next_tape & ASCII, (next_tape & RIGHT) ? 'R' : 'L');
+        }
+
         *ptr = next_tape & ASCII;
-        if ((next_tape ^ ASCII) && ptr < TAPE_MAX) { // right
+        if ((next_tape & RIGHT) && ptr < TAPE_MAX) { // right
             ptr++;
         } else if (ptr > tape_initial) { // left
             ptr--;
         }
-        state = mem[state * 256 + tape_char * 2 + 1];
+        state = next_state;
+
 
         if (state == 1) {
             fprintf(stderr, "ACCEPT. Tape:\n");
-            print_tape((next_tape ^ ASCII) ? tape_initial : ptr);
+            print_tape((next_tape & RIGHT) ? tape_initial : ptr);
+            putchar('\n');
             free(mem);
             return 0;
         } else if (state == 0) {
             fprintf(stderr, "REJECT. Tape:\n");
-            print_tape((next_tape ^ ASCII) ? tape_initial : ptr);
+            print_tape((next_tape & RIGHT) ? tape_initial : ptr);
+            putchar('\n');
             free(mem);
             return 1;
         }
