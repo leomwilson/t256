@@ -13,6 +13,7 @@ int main (void) {
     memset(mem, 0, 256 * 256);
     
     mem[COMP_PTR(2, 0)] = 0;
+    mem[COMP_PTR(2, 0) + 1] = 1;
     
     for (int i = 1; i < 128; i++) {
         if (i >= 97 && i <= 122) { // lowercase latin letter, to upper

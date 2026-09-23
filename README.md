@@ -27,13 +27,15 @@ See the comment in `t256.c` for more information.
 
 This runs like a regular Turing machine, with a few exceptions:
 
-- The machine only has 254 states, plus the special states `0` (accept) and `1` (reject).
+- The machine only has 254 states, plus the special states `0` (reject) and `1` (accept).
 
 - The tape is limited to 192kb (192 * 1024 characters). Attempting to move right past the end will leave the head at its current position (like attempting to move left past the beginning).
 
 - Each character on the tape must be 7 bits; since the tape stores 8-bit bytes, the highest-order bit will be ignored. This is not an issue if using standard ASCII characters.
 
-- Transition to state `0` to accept or state `1` to reject, in either case terminating. If the program transitions to a terminal state while moving the tape head left, the machine outputs the tape as a null-terminated string starting with the beginning of the tape; if the tape head is moved right at this transition, the machine outputs the tape starting at the new location of the head.
+- Transition to state `0` to reject or state `1` to accept, in either case terminating. If the program transitions to a terminal state while moving the tape head left, the machine outputs the tape as a null-terminated string starting with the beginning of the tape; if the tape head is moved right at this transition, the machine outputs the tape starting at the new location of the head.
+
+- Note that because state `0` rejects, if the instruction memory is initialized to zeroes, then an undefined transition automatically rejects.
 
 ## Compilation
 

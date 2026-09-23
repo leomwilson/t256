@@ -68,12 +68,12 @@ int main (int argc, char** argv) {
         }
         state = mem[state * 256 + tape_char * 2 + 1];
 
-        if (state == 0) {
+        if (state == 1) {
             fprintf(stderr, "ACCEPT. Tape:\n");
             print_tape((next_tape ^ ASCII) ? tape_initial : ptr);
             free(mem);
             return 0;
-        } else if (state == 1) {
+        } else if (state == 0) {
             fprintf(stderr, "REJECT. Tape:\n");
             print_tape((next_tape ^ ASCII) ? tape_initial : ptr);
             free(mem);
