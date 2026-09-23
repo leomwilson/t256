@@ -24,9 +24,17 @@ struct parsedLine {
     struct parsedLine* next;
 };
 
+char parseSingleHexDigit (char c) {
+    // NOTE: assumes valid hex digit
+    if (c <= 57) {
+        return c - 48; // '0' -> 0, etc
+    }
+    c &= 0b11011111; // force uppercase
+    return c - 55; // 'A' -> 10, etc
+}
+
 char parseTwoDigitHex (char a, char b) {
-    // TODO: parse
-    return 5;
+    return parseSingleHexDigit(a) << 4 & parseSingleHexDigit(b);
 }
 
 char isHexDigit(char c) {
