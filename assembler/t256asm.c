@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#define COMP_PTR(state, tape_char) (state * 256 + tape_char * 2)
+
+const char ASCII = 0b01111111;
 struct lexedSymbol {
     char type; // 0 = two-digit hex, 1 = comma, 2 = semicolon, 3 = arrow, 4 = direction, 5 = blank
     char data;
@@ -16,6 +19,7 @@ struct parsedLine {
     char toState;
     char newChar;
     char movement; // 0 = left, 1 = right
+    int line; // line in file, for debugging
     struct parsedLine* next;
 };
 
@@ -128,7 +132,6 @@ int main(int argc, char** argv) {
 
     fclose(infile);
 
-    // this initial line will be handled gracefully for structural reasons
     struct parsedLine initialLine;
     initialLine.fromState = 0;
     initialLine.tapeChar = 0;
@@ -149,6 +152,7 @@ int main(int argc, char** argv) {
             return 2;
         }
         curLine.fromState = curSymbol.data;
+        curLine.line = curSymbol.line;
         if (curSymbol.next == NULL) {
             fprintf('Parser error on line %d: Incomplete statement.\n', curSymbol.line);
             return 2;
@@ -257,6 +261,21 @@ int main(int argc, char** argv) {
         prevLine.next = &curLine;
         prevLine = curLine;
     }
+
+    struct parsedLine curLine = initialLine;
+
+    char* mem = malloc(256 * 256);
+    memset(mem, 0, 256 * 256);
+
+    while (curLine.next != NULL) {
+        curLine = *curLine.next; // NOTE: skips the initial empty line 
+        mem[COMP_PTR(curLine.fromState, curLine.tapeChar)] = (curLine.newChar & ASCII) | (curLine.movement < 7);
+        mem[COMP_PTR(curLine.fromState, curLine.tapeChar) + 1] = curLine.toState;
+    };
+
+    // TODO: write out to file
+
+    free(mem);
 
     return 0;
 }
