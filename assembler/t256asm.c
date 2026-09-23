@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 struct lexedSymbol {
-    char type; // 0 = two-digit hex, 1 = comma, 2 = semicolon, 3 = arrow, 4 = direction, 5 = blank;
+    char type; // 0 = two-digit hex, 1 = comma, 2 = semicolon, 3 = arrow, 4 = direction, 5 = blank
     char data;
     int line;
     struct lexedSymbol* next;
@@ -30,7 +30,7 @@ char isHexDigit(char c) {
 
 int main(int argc, char** argv) {
     if (argc > 2) {
-        return 3;
+        return 10;
     }
 
     char* infname;
@@ -126,9 +126,137 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    initialSymbol = *initialSymbol.next; // ignore blank at beginning
-
     fclose(infile);
+
+    // this initial line will be handled gracefully for structural reasons
+    struct parsedLine initialLine;
+    initialLine.fromState = 0;
+    initialLine.tapeChar = 0;
+    initialLine.toState = 0;
+    initialLine.newChar = 0;
+    initialLine.movement = 0;
+
+    struct parsedLine prevLine = initialLine;
+    struct lexedSymbol curSymbol = initialSymbol;
+
+    while (curSymbol.next != NULL) {
+        curSymbol = *curSymbol.next; // NOTE: skips the initial blank symbol
+        struct parsedLine curLine;
+
+        // from state
+        if (curSymbol.type != 0) {
+            fprintf('Parser error on line %d: Malformed statement.\n', curSymbol.line);
+            return 2;
+        }
+        curLine.fromState = curSymbol.data;
+        if (curSymbol.next == NULL) {
+            fprintf('Parser error on line %d: Incomplete statement.\n', curSymbol.line);
+            return 2;
+        }
+        curSymbol = *curSymbol.next;
+        
+        // comma
+        if (curSymbol.type != 1) {
+            fprintf('Parser error on line %d: Malformed statement.\n', curSymbol.line);
+            return 2;
+        }
+        if (curSymbol.next == NULL) {
+            fprintf('Parser error on line %d: Incomplete statement.\n', curSymbol.line);
+            return 2;
+        }
+        curSymbol = *curSymbol.next;
+
+        // tape char
+        if (curSymbol.type != 0) {
+            fprintf('Parser error on line %d: Malformed statement.\n', curSymbol.line);
+            return 2;
+        }
+        curLine.tapeChar = curSymbol.data;
+        if (curSymbol.next == NULL) {
+            fprintf('Parser error on line %d: Incomplete statement.\n', curSymbol.line);
+            return 2;
+        }
+        curSymbol = *curSymbol.next;
+
+        // arrow
+        if (curSymbol.type != 3) {
+            fprintf('Parser error on line %d: Malformed statement.\n', curSymbol.line);
+            return 2;
+        }
+        if (curSymbol.next == NULL) {
+            fprintf('Parser error on line %d: Incomplete statement.\n', curSymbol.line);
+            return 2;
+        }
+        curSymbol = *curSymbol.next;
+
+        // to state
+        if (curSymbol.type != 0) {
+            fprintf('Parser error on line %d: Malformed statement.\n', curSymbol.line);
+            return 2;
+        }
+        curLine.toState = curSymbol.data;
+        if (curSymbol.next == NULL) {
+            fprintf('Parser error on line %d: Incomplete statement.\n', curSymbol.line);
+            return 2;
+        }
+        curSymbol = *curSymbol.next;
+
+        // comma
+        if (curSymbol.type != 1) {
+            fprintf('Parser error on line %d: Malformed statement.\n', curSymbol.line);
+            return 2;
+        }
+        if (curSymbol.next == NULL) {
+            fprintf('Parser error on line %d: Incomplete statement.\n', curSymbol.line);
+            return 2;
+        }
+        curSymbol = *curSymbol.next;
+
+        // new char
+        if (curSymbol.type != 0) {
+            fprintf('Parser error on line %d: Malformed statement.\n', curSymbol.line);
+            return 2;
+        }
+        curLine.newChar = curSymbol.data;
+        if (curSymbol.next == NULL) {
+            fprintf('Parser error on line %d: Incomplete statement.\n', curSymbol.line);
+            return 2;
+        }
+        curSymbol = *curSymbol.next;
+
+        // comma
+        if (curSymbol.type != 1) {
+            fprintf('Parser error on line %d: Malformed statement.\n', curSymbol.line);
+            return 2;
+        }
+        if (curSymbol.next == NULL) {
+            fprintf('Parser error on line %d: Incomplete statement.\n', curSymbol.line);
+            return 2;
+        }
+        curSymbol = *curSymbol.next;
+
+        // movement
+        if (curSymbol.type != 4) {
+            fprintf('Parser error on line %d: Malformed statement.\n', curSymbol.line);
+            return 2;
+        }
+        curLine.movement = curSymbol.data;
+        if (curSymbol.next == NULL) {
+            fprintf('Parser error on line %d: Incomplete statement.\n', curSymbol.line);
+            return 2;
+        }
+        curSymbol = *curSymbol.next;
+
+        // semicolon
+        if (curSymbol.type != 2) {
+            fprintf('Parser error on line %d: Malformed statement.\n', curSymbol.line);
+            return 2;
+        }
+
+        // add to the linked list
+        prevLine.next = &curLine;
+        prevLine = curLine;
+    }
 
     return 0;
 }
