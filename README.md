@@ -62,3 +62,6 @@ gcc t256.c -o t256
 Status code `0` for accept, `1` for reject, anything else is an error.
 
 By default, the program also prints the final tape as a null-terminated string.
+
+# t256asm
+An assembler for T-256 the virtual machine.
