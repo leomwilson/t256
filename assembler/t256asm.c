@@ -14,6 +14,7 @@ struct lexedSymbol {
     struct lexedSymbol* next;
 };
 
+// 02, 41 -> 03, 42, R; # when q2 reads 'A': go to q3, write 'B', and shift right
 struct parsedLine {
     char fromState;
     char tapeChar;
@@ -42,16 +43,16 @@ char isHexDigit(char c) {
 }
 
 int main(int argc, char** argv) {
-    if (argc == 0 || argc > 2) {
+    if (argc < 2 || argc > 3) {
         return 10;
     }
 
     char* infname;
-    infname = argv[0];
+    infname = argv[1];
     char outfname[strlen(infname) + 5];
     
-    if (argc == 2) {
-        strncpy(outfname, argv[1], sizeof(outfname) - 1);
+    if (argc == 3) {
+        strncpy(outfname, argv[2], sizeof(outfname) - 1);
     } else {
         strcpy(outfname, infname);
         strcat(outfname, ".t256");
@@ -60,7 +61,7 @@ int main(int argc, char** argv) {
     FILE* infile = fopen(infname, "r");
     char c = 1;
     char storedChar;
-    int line = 0;
+    int line = 1; // lines are 1-indexed
     char state = 0; // 0 = ready, 1 = number, 2 = arrow, 3 = comment
     struct lexedSymbol initialSymbol;
     initialSymbol.type = 5;
@@ -68,6 +69,7 @@ int main(int argc, char** argv) {
     struct lexedSymbol prevSymbol = initialSymbol;
     while (c != EOF) {
         c = (char) fgetc(infile);
+        if (c == EOF) { break; } // I recognize that this is a hack
 
         // comments
         if (state == 3 && c == '\n') {
@@ -76,8 +78,8 @@ int main(int argc, char** argv) {
             // since it does not continue
         } else if (state == 3) {
             continue;
-        } else if (state != 3 && c == '#') {
-            state = 4;
+        } else if (c == '#') {
+            state = 3;
             continue;
         }
 
@@ -110,6 +112,7 @@ int main(int argc, char** argv) {
             curSymbol.line = line;
             prevSymbol.next = &curSymbol;
             prevSymbol = curSymbol;
+            continue;
         }
 
         // arrows
@@ -127,13 +130,24 @@ int main(int argc, char** argv) {
             continue;
         }
 
+        // directions
+        if (state == 0 && (c == 'R' || c == 'r' || c == 'L' || c == 'l')) {
+            struct lexedSymbol curSymbol;
+            curSymbol.type = 4;
+            curSymbol.line = line;
+            curSymbol.data = (c == 'R' || c == 'r') ? 1 : 0;
+            prevSymbol.next = &curSymbol;
+            prevSymbol = curSymbol;
+            continue;
+        }
+
         // not handled, error
-        fprintf(stderr, "Lexer error on line %d: Incorrect syntax.\n", line);
+        fprintf(stderr, "Lexer error on line %d: Incorrect syntax around '%c'.\n", line, c);
         fclose(infile);
         return 1;
     }
 
-    if (state != 0) {
+    if (state != 0 && state != 3) {
         fprintf(stderr, "Lexer error on line %d: Unterminated symbol.\n", line);
         fclose(infile);
         return 1;
