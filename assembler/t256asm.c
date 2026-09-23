@@ -35,7 +35,7 @@ char parseSingleHexDigit (char c) {
 }
 
 char parseTwoDigitHex (char a, char b) {
-    return parseSingleHexDigit(a) << 4 & parseSingleHexDigit(b);
+    return parseSingleHexDigit(a) << 4 | parseSingleHexDigit(b);
 }
 
 char isHexDigit(char c) {
@@ -291,9 +291,12 @@ int main(int argc, char** argv) {
     memset(mem, 0, 256 * 256);
 
     while (curLine->next != NULL) {
-        curLine = curLine->next; // NOTE: skips the initial empty line 
+        curLine = curLine->next; // NOTE: skips the initial empty line
+        //printf("Line %d: %d (%d) -> %d (%d) %d\n", curLine->line, curLine->fromState, curLine->tapeChar, curLine->toState, curLine->newChar, curLine->movement);
         mem[COMP_PTR(curLine->fromState, curLine->tapeChar)] = (curLine->newChar & ASCII) | (curLine->movement << 7);
+        //printf("* %d = %d\n", COMP_PTR(curLine->fromState, curLine->tapeChar), (curLine->newChar & ASCII) | (curLine->movement << 7)); 
         mem[COMP_PTR(curLine->fromState, curLine->tapeChar) + 1] = curLine->toState;
+        //printf("* %d = %d\n", COMP_PTR(curLine->fromState, curLine->tapeChar) + 1, curLine->toState);
     };
 
     // write out to file
